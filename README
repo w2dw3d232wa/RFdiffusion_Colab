@@ -1,1 +1,38 @@
-我視同信練
+# RFdiffusionAA & LigandMPNN Automated Pipeline
+
+## Project Overview
+This repository provides a streamlined, automated pipeline integrating **RFdiffusionAA** and **LigandMPNN** via Google Colab. By connecting these open-source tools, this project enables seamless protein design and de novo binder generation directly from PDB inputs. 
+
+This pipeline reduces the friction of moving between different structural biology tools, allowing researchers to input structural data and receive designed protein sequences in a single, continuous workflow.
+
+## Key Features & Modes
+
+This project features two distinct operational modes tailored for different protein engineering tasks:
+
+### Mode 1: Automated Motif Scaffolding
+* **Input:** A PDB ID or PDB file.
+* **Process:** The pipeline automatically fetches the corresponding structural data from the RCSB Protein Data Bank.
+* **Output:** Executes RFdiffusionAA based on the fetched structural motifs, followed by LigandMPNN sequence design.
+
+### Mode 2: De Novo Ligand Binder Design
+* **Input:** A PDB file containing a protein-ligand complex.
+* **Process:** The script automatically parses the PDB file, removes the existing protein chains, and isolates the target ligand. 
+* **Output:** RFdiffusionAA builds a completely novel protein backbone around the isolated ligand, and LigandMPNN generates the optimal amino acid sequence for this new binder.
+
+## Pipeline Architecture
+1. **Data Parsing:** RCSB fetching and automated PDB cleaning (stripping native proteins).
+2. **Backbone Generation:** RFdiffusionAA generates novel structural backbones accommodating the target ligand.
+3. **Sequence Design:** LigandMPNN processes the generated backbones to predict high-affinity amino acid sequences.
+4. **Validation:** Ready for AlphaFold2/ColabFold structure prediction.
+
+## How to Use
+*(Add your Google Colab links here)*
+* [Colab Notebook: Mode 1 - Automated RCSB Fetching](#)
+* [Colab Notebook: Mode 2 - De Novo Binder Design](#)
+
+## Acknowledgments
+This pipeline is built upon the foundational open-source Colab notebooks provided by the Baker Lab and the broader structural bioinformatics community. Modifications were made to bridge the inputs and outputs of these models into a unified workflow.
+
+## About the Author
+**[Your Name]** Undergraduate Student, National Taiwan Ocean University (NTOU)  
+Focusing on computational biology, structural bioinformatics, and protein engineering.

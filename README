@@ -1,7 +1,1 @@
-echo "# RFdiffusion_Colab" >> README.md
-git init
-git add README.md
-git commit -m "first commit"
-git branch -M main
-git remote add origin https://github.com/w2dw3d232wa/RFdiffusion_Colab.git
-git push -u origin main
+我視同信練

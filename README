@@ -9,12 +9,12 @@ This pipeline reduces the friction of moving between different structural biolog
 
 This project features two distinct operational modes tailored for different protein engineering tasks:
 
-### Mode 1: Automated Motif Scaffolding
+## Mode 1: Automated Motif Scaffolding
 * **Input:** A PDB ID or PDB file.
 * **Process:** The pipeline automatically fetches the corresponding structural data from the RCSB Protein Data Bank.
 * **Output:** Executes RFdiffusionAA based on the fetched structural motifs, followed by LigandMPNN sequence design.
 
-### Mode 2: De Novo Ligand Binder Design
+## Mode 2: De Novo Ligand Binder Design
 * **Input:** A PDB file containing a protein-ligand complex.
 * **Process:** The script automatically parses the PDB file, removes the existing protein chains, and isolates the target ligand. 
 * **Output:** RFdiffusionAA builds a completely novel protein backbone around the isolated ligand, and LigandMPNN generates the optimal amino acid sequence for this new binder.

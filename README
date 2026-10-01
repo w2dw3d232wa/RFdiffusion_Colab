@@ -1,14 +1,14 @@
 # RFdiffusionAA & LigandMPNN 自動化蛋白質設計流程
 
-> 一套基於 **Google Colab** 的自動化蛋白質設計流程，串接 **RFdiffusionAA** 與 **LigandMPNN**，從 PDB 結構輸入、蛋白質骨架生成、序列設計，到後續結構驗證，建立完整的蛋白質設計 workflow。
+> 一套基於 **Google Colab** 的自動化蛋白質設計流程，串接 **RFdiffusionAA**、**LigandMPNN** 與 **PDBFixer**，從 PDB 結構輸入、蛋白質骨架生成、序列設計，到結構修補與驗證，建立完整的蛋白質設計 workflow。
 
 ---
 
 ## 📌 專案簡介
 
-本專案整合開源的 **RFdiffusionAA** 與 **LigandMPNN**，建立一套可直接於 Google Colab 執行的蛋白質設計流程。
+本專案整合開源的 **RFdiffusionAA**、**LigandMPNN** 與 **PDBFixer**，建立一套可直接於 Google Colab 執行的蛋白質設計流程。
 
-透過自動化處理 PDB 結構、蛋白質骨架生成、胺基酸序列設計與結構驗證，使用者可以從既有蛋白質結構或蛋白質－配體複合體出發，完成 **de novo protein design**。
+透過自動化處理 PDB 結構、蛋白質骨架生成、胺基酸序列設計、結構修補與結構驗證，使用者可以從既有蛋白質結構或蛋白質－配體複合體出發，完成 **de novo protein design**。
 
 本專案主要著重於不同工具之間的流程整合，降低資料整理與模型串接的操作成本，讓蛋白質設計可以在較連續的 workflow 中完成。
 
@@ -22,7 +22,7 @@
 | ------------- | ---------------------------- | --------------- | ----------------------------------- |
 | 🧬 **Mode 1** | Automated Motif Scaffolding  | PDB ID / PDB 檔案 | PDB 擷取 → RFdiffusionAA → LigandMPNN |
 | 🧪 **Mode 2** | De Novo Ligand Binder Design | 蛋白質－配體複合體 PDB   | 配體擷取 → RFdiffusionAA → LigandMPNN   |
-| 🔬 **Mode 3** | Structure Validation         | 設計出的蛋白質序列       | 結構預測 → 結構分析 → 候選篩選                  |
+| 🔬 **Mode 3** | Structure Validation         | 設計出的蛋白質序列 / 結構  | PDBFixer → 結構預測 → 結構分析              |
 
 ---
 
@@ -64,18 +64,18 @@
 4. 將 ligand 作為設計目標輸入 **RFdiffusionAA**。
 5. 生成可與目標 ligand 作用的新蛋白質 backbone。
 6. 使用 **LigandMPNN** 進行胺基酸序列設計。
-7. 將產生的候選序列交由後續結構驗證流程分析。
+7. 將產生的序列交由後續 **PDBFixer** 與結構驗證流程處理。
 
 ### 輸出
 
 * 全新生成的 protein backbones
-* 對應的 binder protein sequences
+* LigandMPNN 設計的 binder protein sequences
 
 ---
 
 # 🔬 Mode 3：Structure Validation
 
-此模式用於分析 RFdiffusionAA 與 LigandMPNN 產生的候選蛋白質，確認設計出的序列是否能形成符合預期的結構。
+此模式用於處理 RFdiffusionAA 與 LigandMPNN 產生的候選蛋白質，並進一步進行結構預測與驗證。
 
 ### 輸入
 
@@ -85,27 +85,44 @@
 ### 流程
 
 ```text
-Designed Protein Sequences
-          │
-          ▼
-   Structure Prediction
-          │
-          ▼
-   Structural Analysis
-          │
-          ▼
- Candidate Filtering
+LigandMPNN
+     │
+     ▼
+Designed Protein Sequence
+     │
+     ▼
+   PDBFixer
+     │
+     ├── 補回缺失側鏈
+     └── 補回缺失原子
+     │
+     ▼
+Structure Prediction
+     │
+     ▼
+Structural Analysis
+     │
+     ▼
+Candidate Filtering
 ```
 
-可進一步搭配 **AlphaFold2 / ColabFold** 等結構預測工具，分析：
+### PDBFixer 結構修補
+
+LigandMPNN 主要負責根據 backbone 進行蛋白質序列設計，因此在後續結構處理時，部分結構可能需要補回缺失的原子。
+
+本流程加入 **PDBFixer**，將設計好的蛋白質序列與 backbone 進行結構整理，補回缺失的側鏈與原子，使其更適合進行後續結構預測與分析。
+
+### 結構預測與驗證
+
+結構修補後，可搭配 **AlphaFold2 / ColabFold** 等工具進行結構預測，進一步分析：
 
 * 預測蛋白質結構
-* 結構與原始設計 backbone 的一致性
+* 預測結構與設計 backbone 的一致性
 * 目標 binding site 的結構狀態
 * 候選蛋白質的整體結構品質
 
 > **Note:** RFdiffusionAA 的 Colab 流程中已附有基本的結構驗證步驟。
-> 此處另外提供獨立的 Structure Validation Colab，方便使用者針對大量設計結果進行後續結構預測與分析。
+> 本專案另外提供獨立的 **Structure Validation Colab**，將 **PDBFixer、結構預測與後續分析** 整合在一起，方便針對大量設計結果進行後續驗證。
 
 ---
 
@@ -136,6 +153,12 @@ Designed Protein Sequences
                            │
                            ▼
                 ┌────────────────────┐
+                │      PDBFixer      │
+                │ Structure Repair   │
+                └──────────┬─────────┘
+                           │
+                           ▼
+                ┌────────────────────┐
                 │ Structure Validation│
                 │ AlphaFold / ColabFold│
                 └──────────┬─────────┘
@@ -155,10 +178,13 @@ Designed Protein Sequences
 **③ 序列設計（Sequence Design）**
 將生成的 backbone 輸入 **LigandMPNN**，進行胺基酸序列設計。
 
-**④ 結構驗證（Structure Validation）**
+**④ 結構修補（Structure Repair）**
+利用 **PDBFixer** 根據設計出的蛋白質結構與序列，補回缺失的側鏈與原子，整理成適合後續分析的結構。
+
+**⑤ 結構驗證（Structure Validation）**
 利用 **AlphaFold2 / ColabFold** 等工具預測設計序列的三維結構，並進一步分析結構品質與 binding site。
 
-**⑤ 候選篩選（Candidate Filtering）**
+**⑥ 候選篩選（Candidate Filtering）**
 根據結構預測與分析結果，篩選符合設計目標的候選蛋白質。
 
 ---
@@ -168,26 +194,25 @@ Designed Protein Sequences
 本專案目前透過 Google Colab 執行。
 
 ### 🧬 Mode 1 — Automated Motif Scaffolding
-
 ### 🧪 Mode 2 — De Novo Ligand Binder Design
 
-🔗 **https://colab.research.google.com/drive/1pBp5pvURSe9tKg60PNpAqUzFPkPFdxMM?hl=zh-tw(#)**
+🔗 **[https://colab.research.google.com/drive/1pBp5pvURSe9tKg60PNpAqUzFPkPFdxMM?usp=sharing](#)**
 
 ### 🔬 Mode 3 — Structure Validation
 
 🔗 **[https://colab.research.google.com/drive/1Xbo_8ozPn6axIXAb_f6tWyjwmKJWS_WI?usp=sharing](#)**
 
 
+
 ---
 
 # 🛠️ 使用工具
 
-本流程主要整合以下工具：
-
 | 工具                         | 用途                          |
 | -------------------------- | --------------------------- |
-| **RFdiffusionAA**          | 蛋白質 backbone generation     |
+| **RFdiffusionAA**          | Protein backbone generation |
 | **LigandMPNN**             | Protein sequence design     |
+| **PDBFixer**               | 補回缺失側鏈與原子、結構整理              |
 | **RCSB Protein Data Bank** | Protein structure database  |
 | **AlphaFold2 / ColabFold** | Structure prediction        |
 | **Google Colab**           | Cloud execution environment |
@@ -213,6 +238,12 @@ Designed Protein Sequences
                        │
                        ▼
                  Sequence Design
+                       │
+                       ▼
+                   PDBFixer
+                       │
+                       ▼
+                Structure Repair
                        │
                        ▼
               Structure Validation
@@ -248,6 +279,7 @@ De Novo Ligand Binder Design
 📓 Colab 3
 Structure Validation
         │
+        ├── PDBFixer
         ├── Structure Prediction
         ├── Structural Analysis
         └── Candidate Filtering
@@ -259,7 +291,7 @@ Structure Validation
 
 本專案建立於 **Baker Lab** 以及結構生物資訊研究社群所提供的開源工具與 Google Colab notebooks。
 
-在此基礎上，本專案進一步修改與整合相關程式，使 **RFdiffusionAA** 與 **LigandMPNN** 的輸入與輸出能夠自動銜接，形成較完整的蛋白質設計 workflow。
+在此基礎上，本專案進一步修改與整合相關程式，使 **RFdiffusionAA**、**LigandMPNN** 與 **PDBFixer** 的輸入與輸出能夠自動銜接，形成較完整的蛋白質設計 workflow。
 
 ---
 

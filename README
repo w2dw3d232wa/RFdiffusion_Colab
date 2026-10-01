@@ -1,38 +1,286 @@
-# RFdiffusionAA & LigandMPNN Automated Pipeline
+# RFdiffusionAA & LigandMPNN 自動化蛋白質設計流程
 
-## Project Overview
-This repository provides a streamlined, automated pipeline integrating **RFdiffusionAA** and **LigandMPNN** via Google Colab. By connecting these open-source tools, this project enables seamless protein design and de novo binder generation directly from PDB inputs. 
+> 一套基於 **Google Colab** 的自動化蛋白質設計流程，串接 **RFdiffusionAA** 與 **LigandMPNN**，從 PDB 結構輸入、蛋白質骨架生成、序列設計，到後續結構驗證，建立完整的蛋白質設計 workflow。
 
-This pipeline reduces the friction of moving between different structural biology tools, allowing researchers to input structural data and receive designed protein sequences in a single, continuous workflow.
+---
 
-## Key Features & Modes
+## 📌 專案簡介
 
-This project features two distinct operational modes tailored for different protein engineering tasks:
+本專案整合開源的 **RFdiffusionAA** 與 **LigandMPNN**，建立一套可直接於 Google Colab 執行的蛋白質設計流程。
 
-## Mode 1: Automated Motif Scaffolding
-* **Input:** A PDB ID or PDB file.
-* **Process:** The pipeline automatically fetches the corresponding structural data from the RCSB Protein Data Bank.
-* **Output:** Executes RFdiffusionAA based on the fetched structural motifs, followed by LigandMPNN sequence design.
+透過自動化處理 PDB 結構、蛋白質骨架生成、胺基酸序列設計與結構驗證，使用者可以從既有蛋白質結構或蛋白質－配體複合體出發，完成 **de novo protein design**。
 
-## Mode 2: De Novo Ligand Binder Design
-* **Input:** A PDB file containing a protein-ligand complex.
-* **Process:** The script automatically parses the PDB file, removes the existing protein chains, and isolates the target ligand. 
-* **Output:** RFdiffusionAA builds a completely novel protein backbone around the isolated ligand, and LigandMPNN generates the optimal amino acid sequence for this new binder.
+本專案主要著重於不同工具之間的流程整合，降低資料整理與模型串接的操作成本，讓蛋白質設計可以在較連續的 workflow 中完成。
 
-## Pipeline Architecture
-1. **Data Parsing:** RCSB fetching and automated PDB cleaning (stripping native proteins).
-2. **Backbone Generation:** RFdiffusionAA generates novel structural backbones accommodating the target ligand.
-3. **Sequence Design:** LigandMPNN processes the generated backbones to predict high-affinity amino acid sequences.
-4. **Validation:** Ready for AlphaFold2/ColabFold structure prediction.
+---
 
-## How to Use
-*(Add your Google Colab links here)*
-* [Colab Notebook: Mode 1 - Automated RCSB Fetching](#)
-* [Colab Notebook: Mode 2 - De Novo Binder Design](#)
+## ✨ 主要功能
 
-## Acknowledgments
-This pipeline is built upon the foundational open-source Colab notebooks provided by the Baker Lab and the broader structural bioinformatics community. Modifications were made to bridge the inputs and outputs of these models into a unified workflow.
+本專案目前提供三個主要功能模組：
 
-## About the Author
-**施程耀** Undergraduate Student, National Taiwan Ocean University (NTOU)  
-Focusing on computational biology, structural bioinformatics, and protein engineering.
+| 模式            | 功能                           | 輸入              | 主要流程                                |
+| ------------- | ---------------------------- | --------------- | ----------------------------------- |
+| 🧬 **Mode 1** | Automated Motif Scaffolding  | PDB ID / PDB 檔案 | PDB 擷取 → RFdiffusionAA → LigandMPNN |
+| 🧪 **Mode 2** | De Novo Ligand Binder Design | 蛋白質－配體複合體 PDB   | 配體擷取 → RFdiffusionAA → LigandMPNN   |
+| 🔬 **Mode 3** | Structure Validation         | 設計出的蛋白質序列       | 結構預測 → 結構分析 → 候選篩選                  |
+
+---
+
+# 🧬 Mode 1：Automated Motif Scaffolding
+
+### 輸入
+
+* PDB ID
+* PDB 檔案
+
+### 流程
+
+1. 從 **RCSB Protein Data Bank** 自動取得對應結構資料。
+2. 解析並整理 PDB 結構。
+3. 根據指定的結構 motif 執行 **RFdiffusionAA**。
+4. 使用 **LigandMPNN** 對生成的蛋白質骨架進行序列設計。
+5. 產生可供後續結構驗證的蛋白質序列。
+
+### 輸出
+
+* RFdiffusionAA 生成的 protein backbones
+* LigandMPNN 設計的 protein sequences
+
+---
+
+# 🧪 Mode 2：De Novo Ligand Binder Design
+
+此模式用於從既有的蛋白質－配體複合體中，針對指定 ligand 進行全新的 binder 設計。
+
+### 輸入
+
+* 包含蛋白質－配體複合體的 PDB 檔案
+
+### 流程
+
+1. 自動解析輸入的 PDB 結構。
+2. 移除原有蛋白質鏈。
+3. 保留目標 **ligand**。
+4. 將 ligand 作為設計目標輸入 **RFdiffusionAA**。
+5. 生成可與目標 ligand 作用的新蛋白質 backbone。
+6. 使用 **LigandMPNN** 進行胺基酸序列設計。
+7. 將產生的候選序列交由後續結構驗證流程分析。
+
+### 輸出
+
+* 全新生成的 protein backbones
+* 對應的 binder protein sequences
+
+---
+
+# 🔬 Mode 3：Structure Validation
+
+此模式用於分析 RFdiffusionAA 與 LigandMPNN 產生的候選蛋白質，確認設計出的序列是否能形成符合預期的結構。
+
+### 輸入
+
+* RFdiffusionAA 生成的 protein backbones
+* LigandMPNN 設計的 protein sequences
+
+### 流程
+
+```text
+Designed Protein Sequences
+          │
+          ▼
+   Structure Prediction
+          │
+          ▼
+   Structural Analysis
+          │
+          ▼
+ Candidate Filtering
+```
+
+可進一步搭配 **AlphaFold2 / ColabFold** 等結構預測工具，分析：
+
+* 預測蛋白質結構
+* 結構與原始設計 backbone 的一致性
+* 目標 binding site 的結構狀態
+* 候選蛋白質的整體結構品質
+
+> **Note:** RFdiffusionAA 的 Colab 流程中已附有基本的結構驗證步驟。
+> 此處另外提供獨立的 Structure Validation Colab，方便使用者針對大量設計結果進行後續結構預測與分析。
+
+---
+
+# 🔬 Pipeline Architecture
+
+整體 workflow 可以概括為：
+
+```text
+                    PDB ID / PDB File
+                           │
+                           ▼
+                ┌────────────────────┐
+                │   Data Parsing     │
+                │   RCSB / PDB Clean │
+                └──────────┬─────────┘
+                           │
+                           ▼
+                ┌────────────────────┐
+                │   RFdiffusionAA    │
+                │   Backbone Design  │
+                └──────────┬─────────┘
+                           │
+                           ▼
+                ┌────────────────────┐
+                │     LigandMPNN     │
+                │    Sequence Design │
+                └──────────┬─────────┘
+                           │
+                           ▼
+                ┌────────────────────┐
+                │ Structure Validation│
+                │ AlphaFold / ColabFold│
+                └──────────┬─────────┘
+                           │
+                           ▼
+                   Candidate Filtering
+```
+
+### 流程說明
+
+**① 結構解析（Data Parsing）**
+自動從 RCSB Protein Data Bank 擷取 PDB 結構，或直接讀取使用者提供的 PDB 檔案，並進行必要的結構整理。
+
+**② 蛋白質骨架生成（Backbone Generation）**
+利用 **RFdiffusionAA** 根據指定 motif 或 target ligand 生成新的 protein backbones。
+
+**③ 序列設計（Sequence Design）**
+將生成的 backbone 輸入 **LigandMPNN**，進行胺基酸序列設計。
+
+**④ 結構驗證（Structure Validation）**
+利用 **AlphaFold2 / ColabFold** 等工具預測設計序列的三維結構，並進一步分析結構品質與 binding site。
+
+**⑤ 候選篩選（Candidate Filtering）**
+根據結構預測與分析結果，篩選符合設計目標的候選蛋白質。
+
+---
+
+# 🚀 使用方式
+
+本專案目前透過 Google Colab 執行。
+
+### 🧬 Mode 1 — Automated Motif Scaffolding
+
+### 🧪 Mode 2 — De Novo Ligand Binder Design
+
+🔗 **https://colab.research.google.com/drive/1pBp5pvURSe9tKg60PNpAqUzFPkPFdxMM?hl=zh-tw(#)**
+
+### 🔬 Mode 3 — Structure Validation
+
+🔗 **[https://colab.research.google.com/drive/1Xbo_8ozPn6axIXAb_f6tWyjwmKJWS_WI?usp=sharing](#)**
+
+
+---
+
+# 🛠️ 使用工具
+
+本流程主要整合以下工具：
+
+| 工具                         | 用途                          |
+| -------------------------- | --------------------------- |
+| **RFdiffusionAA**          | 蛋白質 backbone generation     |
+| **LigandMPNN**             | Protein sequence design     |
+| **RCSB Protein Data Bank** | Protein structure database  |
+| **AlphaFold2 / ColabFold** | Structure prediction        |
+| **Google Colab**           | Cloud execution environment |
+
+---
+
+# 📂 專案流程
+
+```text
+                Existing Structure
+                       │
+                       ▼
+                Structure Parsing
+                       │
+                       ▼
+                 RFdiffusionAA
+                       │
+                       ▼
+                 Backbone Design
+                       │
+                       ▼
+                  LigandMPNN
+                       │
+                       ▼
+                 Sequence Design
+                       │
+                       ▼
+              Structure Validation
+                       │
+                       ▼
+               Candidate Filtering
+```
+
+---
+
+# 📁 Colab Workflow
+
+```text
+📓 Colab 1
+Automated Motif Scaffolding
+        │
+        ├── PDB Fetching
+        ├── RFdiffusionAA
+        └── LigandMPNN
+                 │
+                 ▼
+
+📓 Colab 2
+De Novo Ligand Binder Design
+        │
+        ├── PDB Parsing
+        ├── Ligand Extraction
+        ├── RFdiffusionAA
+        └── LigandMPNN
+                 │
+                 ▼
+
+📓 Colab 3
+Structure Validation
+        │
+        ├── Structure Prediction
+        ├── Structural Analysis
+        └── Candidate Filtering
+```
+
+---
+
+# 🙏 致謝
+
+本專案建立於 **Baker Lab** 以及結構生物資訊研究社群所提供的開源工具與 Google Colab notebooks。
+
+在此基礎上，本專案進一步修改與整合相關程式，使 **RFdiffusionAA** 與 **LigandMPNN** 的輸入與輸出能夠自動銜接，形成較完整的蛋白質設計 workflow。
+
+---
+
+# 👨‍💻 作者
+
+**施程耀**
+
+Undergraduate Student
+National Taiwan Ocean University (NTOU)
+
+### Research Interests
+
+* Computational Biology
+* Structural Bioinformatics
+* Protein Engineering
+* AI-based Protein Design
+
+---
+
+# 📄 License
+
+本專案使用的各項模型與程式碼，其授權條款請依各原始開源專案之 License 為準。
+
+如需使用或重新發布相關工具，請同時遵守各上游專案的授權規範。
